@@ -1,4 +1,5 @@
 const request= require("request-promise")
+const axios = require("axios");
 const cheerio= require("cheerio");
 const { testElement } = require("domutils");
 var fs = require('fs');
@@ -12,26 +13,29 @@ fs.writeFile(filename,'', function (err)
 console.log('File is created successfully.');
 });
 
-const start_i = 1
-const end_i = 1
 
-for (let i = start_i; i <= end_i; i++) 
-{
-var website = "https://2e.aonprd.com/Monsters.aspx?ID="+i+""
-request(website, (error, response, html) => 
-{
-    if(!error && response.statusCode==200) 
-    {
-     var $= cheerio.load(html);
+async function scrapeData() 
+{  
+     const id = 1706
+     const website = "https://2e.aonprd.com/Monsters.aspx?ID="+id+""
      
+    try
+    {
+     const data = await axios.get(website);
+     const html = data.data
+     //console.log(html)
+     var $= cheerio.load(html);
+     //console.log($.html(), $.text())
+     //console.log($)
      var name1 = $('h1.title > a', html).text();
-     console.log(name1)
+     //console.log(name1)
      var filename = name1+".cmx";
      var CR = $('h1.title > span', html).first().text().replace("Creature ", "");
      var alignment = $('span.traitalignment', html).text()
      var size = $('span.traitsize', html).text()
      var type = $('span.trait > a', html).text()
      var text =  $('span#ctl00_RadDrawer1_Content_MainContent_DetailedOutput').text()
+     //console.log(text)
      var perception = ""
 
      if((/Perception (\-|\+)\d+/).test(text))
@@ -68,8 +72,8 @@ request(website, (error, response, html) =>
      if((/(?<=Cha )(\+|\-)\d+/).test(text))
                Cha = text.match(/(?<=Cha )(\+|\-)\d+/)[0]*2+10 
      var init = perception.match(/-?\d+/)[0]
-    // console.log(perception)
-     //console.log(init)
+     console.log(perception)
+     console.log(init)
      
  
 
@@ -89,7 +93,7 @@ request(website, (error, response, html) =>
      if((/(?<=HP )[0-9+\-]+/).test(text))
                HP = text.match(/(?<=HP )[0-9+\-]+/)[0]
    
-     //console.log(AC, Fort, Ref, Will, HP);
+     console.log(AC, Fort, Ref, Will, HP);
      
      var Resistances = ""
      if((/(?<=Resistances )[0-9a-zA-Z ,+\-()]+/).test(text))
@@ -101,7 +105,7 @@ request(website, (error, response, html) =>
      if((/(?<=Immunities )[0-9a-zA-Z ,+\-()]+(?=Skills)/).test(text))
              Immunities = text.match(/(?<=Immunities )[0-9a-zA-Z ,+\-()]+/)[0]
 
-     //console.log(Resistances, Weaknesses, Immunities);
+     console.log(Resistances, Weaknesses, Immunities);
      
      var speed = ""
      if((/(?<=Speed )[0-9]+ feet/).test(text))
@@ -117,13 +121,13 @@ request(website, (error, response, html) =>
 
 
      const abilities = $('span.hanging-indent', html)
-     filetext = filetext + '<Monster><ActiveConditions /><UsableConditions /><LoseDexBonus>false</LoseDexBonus><DexZero>false</DexZero><StrZero>false</StrZero><RulesSystemInt>0</RulesSystemInt><PreLossDex xsi:nil="true" /><PreLossStr xsi:nil="true" /><Name>' + '[2e] ' + name1 + " ID:" + i +  '</Name><CR>'+ CR + '</CR><XP>400</XP><Alignment>'+ alignment +'</Alignment><Size>'+ size +'</Size><Type>'+ type +'</Type><Init>'+ init +'</Init><DualInit xsi:nil="true" /><Senses>'+ perception + senses +'</Senses><AC>'+ AC +', touch 10, flat-footed 10</AC><AC_Mods /><HP>'+ HP +'</HP><HD>1d8</HD><Fort>'+ Fort +'</Fort><Ref>'+ Ref +'</Ref><Will>'+ Will +'</Will><Resist>'+Resistances+'</Resist><Speed>'+ speed + flyspeed + swimspeed + '</Speed><AbilitiyScores>Str '+ Str +', Dex '+ Dex +', Con '+ Con +', Int '+ Int +', Wis '+ Wis +', Cha '+ Cha +'</AbilitiyScores><BaseAtk>0</BaseAtk><CMB>+0</CMB><CMD>10</CMD><Skills>'+skills+'</Skills><Languages>'+Languages+'</Languages><Description>'+Description+'</Description><Immune>'+Immunities+'</Immune><HP_Mods /><SpellsKnown /><Weaknesses>'+Weaknesses+'</Weaknesses><TResources /><DontUseRacialHD>false</DontUseRacialHD><MR xsi:nil="true" /><StatsParsed>true</StatsParsed><Strength>'+ Str +'</Strength><Dexterity>'+ Dex +'</Dexterity><Constitution>'+ Con +'</Constitution><Intelligence>'+ Int +'</Intelligence><Wisdom>'+ Wis +'</Wisdom><Charisma>'+ Cha +'</Charisma>'
+     filetext = filetext + '<Monster><ActiveConditions /><UsableConditions /><LoseDexBonus>false</LoseDexBonus><DexZero>false</DexZero><StrZero>false</StrZero><RulesSystemInt>0</RulesSystemInt><PreLossDex xsi:nil="true" /><PreLossStr xsi:nil="true" /><Name>' + '[2e] ' + name1 + " ID:" + id +  '</Name><CR>'+ CR + '</CR><XP>400</XP><Alignment>'+ alignment +'</Alignment><Size>'+ size +'</Size><Type>'+ type +'</Type><Init>'+ init +'</Init><DualInit xsi:nil="true" /><Senses>'+ perception + senses +'</Senses><AC>'+ AC +', touch 10, flat-footed 10</AC><AC_Mods /><HP>'+ HP +'</HP><HD>1d8</HD><Fort>'+ Fort +'</Fort><Ref>'+ Ref +'</Ref><Will>'+ Will +'</Will><Resist>'+Resistances+'</Resist><Speed>'+ speed + flyspeed + swimspeed + '</Speed><AbilitiyScores>Str '+ Str +', Dex '+ Dex +', Con '+ Con +', Int '+ Int +', Wis '+ Wis +', Cha '+ Cha +'</AbilitiyScores><BaseAtk>0</BaseAtk><CMB>+0</CMB><CMD>10</CMD><Skills>'+skills+'</Skills><Languages>'+Languages+'</Languages><Description>'+Description+'</Description><Immune>'+Immunities+'</Immune><HP_Mods /><SpellsKnown /><Weaknesses>'+Weaknesses+'</Weaknesses><TResources /><DontUseRacialHD>false</DontUseRacialHD><MR xsi:nil="true" /><StatsParsed>true</StatsParsed><Strength>'+ Str +'</Strength><Dexterity>'+ Dex +'</Dexterity><Constitution>'+ Con +'</Constitution><Intelligence>'+ Int +'</Intelligence><Wisdom>'+ Wis +'</Wisdom><Charisma>'+ Cha +'</Charisma>'
     
      if (abilities.length > 0) {
           filetext = filetext + '<SpecialAblitiesParsed>true</SpecialAblitiesParsed><SpecialAbilitiesList>'
           // Iterate through each ability
           abilities.each((index, element) => {
-               //console.log($(element).text())
+               console.log($(element).text())
                filetext = filetext + '<SpecialAbility><Name></Name><Type>Ex</Type><Text>'+$(element).text()+'</Text><ConstructionPoints xsi:nil="true" /></SpecialAbility>'
           });
           filetext = filetext + '</SpecialAbilitiesList>'
@@ -134,13 +138,15 @@ request(website, (error, response, html) =>
      
      filetext = filetext + '<SkillsParsed>false</SkillsParsed><SkillValueList /><FeatsParsed>false</FeatsParsed><FeatsList /><AcParsed>true</AcParsed><FullAC>' + AC + '</FullAC><TouchAC>10</TouchAC><FlatFootedAC>'+ (AC-2) +'</FlatFootedAC><NaturalArmor>0</NaturalArmor><Deflection>0</Deflection><Shield>0</Shield><Armor>0</Armor><Dodge>0</Dodge><CMB_Numeric>0</CMB_Numeric><CMD_Numeric>10</CMD_Numeric></Monster>'
 
-     if(i == end_i){
-          fs.appendFile(filename, filetext + '</Monsters><Spells /><Feats /><Conditions /></ExportData>',{ flag: 'a' },function (err) {
-          if (err) throw err;
-          });
-     }
+     fs.appendFile(filename, filetext + '</Monsters><Spells /><Feats /><Conditions /></ExportData>',{ flag: 'a' },function (err) {
+     if (err) throw err;
+     });
 
+
+     }catch (err){
+     console.error(err);
      }
-});
+     
+     
 }
-
+scrapeData();
